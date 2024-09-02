@@ -6,6 +6,7 @@
 @Date  : 2024/9/2
 @Desc :
 """
+import os
 import sqlite3
 import streamlit as st
 
@@ -13,6 +14,9 @@ DB_PATH = "./data/history.db"
 
 
 def create_table():
+    if not os.path.exists(DB_PATH):
+        os.mkdir("./data")
+
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     cur.execute("CREATE TABLE  IF NOT EXISTS history(id INTEGER PRIMARY KEY,question, result, date,actual,mark)")
