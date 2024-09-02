@@ -11,7 +11,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-from service.history import create_table, insert_history, load_histories
+from service.history import create_table, insert_history, load_histories, delete_all, update_history
 
 gua_list = ["Very Smooth(大安)", "Loss(流连)", "Quickly Good Result(速喜)", "Easy Quarrel(赤口)", "Small Luck(小吉)",
             "Lost Everything(空亡)"]
@@ -34,6 +34,14 @@ def get_final_index(first_gua, second_gua, third_gua):
     return gua_list[final_index]
 
 
+@st.dialog("Caution your action")
+def clear_all():
+    st.write(f"This behavior can not be restored")
+    if st.button("Confirmed"):
+        delete_all()
+        st.rerun()
+
+
 if __name__ == '__main__':
     # init
     think_time = 10
@@ -46,7 +54,10 @@ if __name__ == '__main__':
     st.write("Hello, please enter what you would like to ask the Divina tors:")
     thing = st.text_input("question")
 
-    if st.button("Start predicting"):
+    # add button
+    predict, clear_all_col = st.columns(2, vertical_alignment="bottom")
+
+    if predict.button("Start predicting"):
         st.write(
             f"Dear, the thing you want to consult the Divina tors is:： {thing}, please silently read the divinatory things in your heart, {think_time} seconds later for you to interpret the divina things.")
         time.sleep(think_time)
@@ -64,13 +75,16 @@ if __name__ == '__main__':
             f"Dear, what you are consulting:：{thing}, the final result of the small six Sirens given by the Divinatory God is: {final_result}")
 
         # insert to session
-        item = (thing, final_result, datetime.now())
+        item = (thing, final_result, datetime.now(), "", "")
         history.append(item)
         insert_history(item)
+
+    if clear_all_col.button("Clear All"):
+        clear_all()
 
     # show history
     st.write("## Predict History")
     df = pd.DataFrame(history)
     if history:
-        df.columns = ["question", "result", "date"]
-    st.dataframe(df)
+        df.columns = ["id", "question", "result", "date", "actual", "mark"]
+    st.data_editor(df, disabled=["id", "question", "result", "date"], key="changes", on_change=update_history)
