@@ -8,8 +8,10 @@ import random
 import time
 from datetime import datetime
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
+from service.history import create_table, insert_history, load_histories
 
 gua_list = ["Very Smooth(大安)", "Loss(流连)", "Quickly Good Result(速喜)", "Easy Quarrel(赤口)", "Small Luck(小吉)",
             "Lost Everything(空亡)"]
@@ -33,14 +35,12 @@ def get_final_index(first_gua, second_gua, third_gua):
 
 
 if __name__ == '__main__':
+    # init
     think_time = 10
+    create_table()
 
     # load history
-    if 'history' not in st.session_state:
-        st.session_state.history = []
-        history = []
-    else:
-        history = st.session_state.history
+    history = load_histories()
 
     st.write("## Welcome to use Chinese Lesser Six Rens")
     st.write("Hello, please enter what you would like to ask the Divina tors:")
@@ -64,15 +64,13 @@ if __name__ == '__main__':
             f"Dear, what you are consulting:：{thing}, the final result of the small six Sirens given by the Divinatory God is: {final_result}")
 
         # insert to session
-        item = {
-            "question": thing,
-            "result": final_result,
-            "date": datetime.now()
-        }
+        item = (thing, final_result, datetime.now())
         history.append(item)
-        st.session_state.history = history
+        insert_history(item)
 
     # show history
     st.write("## Predict History")
     df = pd.DataFrame(history)
+    if history:
+        df.columns = ["question", "result", "date"]
     st.dataframe(df)
