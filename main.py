@@ -48,7 +48,7 @@ if __name__ == '__main__':
     create_table()
 
     # load history
-    history = load_histories()
+    history_list = load_histories()
 
     st.write("## Welcome to use Chinese Lesser Six Rens")
     st.write("Hello, please enter what you would like to ask the Divina tors:")
@@ -76,15 +76,16 @@ if __name__ == '__main__':
 
         # insert to session
         item = (thing, final_result, datetime.now(), "", "")
-        history.append(item)
-        insert_history(item)
+        result = insert_history(item)
+        history_list.append(result)
 
     if clear_all_col.button("Clear All"):
         clear_all()
 
     # show history
     st.write("## Predict History")
-    df = pd.DataFrame(history)
-    if history:
+    df = pd.DataFrame(history_list)
+    if history_list:
         df.columns = ["id", "question", "result", "date", "actual", "mark"]
+        df.set_index("id", inplace=True)
     st.data_editor(df, disabled=["id", "question", "result", "date"], key="changes", on_change=update_history)

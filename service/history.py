@@ -31,16 +31,22 @@ def insert_history(data: tuple):
     cur = con.cursor()
     cur.execute("INSERT INTO history(question,result,date,actual,mark) VALUES(?, ?, ?, ? , ?)", data)
     con.commit()
+    lastRowid = cur.lastrowid
+    result = list(data)
+    result.insert(0, lastRowid)
+    return result
 
 
 def update_history():
+    con = sqlite3.connect(DB_PATH)
+    print(st.session_state.changes)
     for idx, change in st.session_state.changes["edited_rows"].items():
-        print(idx, ": ", change)
+        id_value = idx + 1
         for label, value in change.items():
-            con = sqlite3.connect(DB_PATH)
-            cur = con.cursor()
-            cur.execute(f"UPDATE history set {label}={value} WHERE id={idx}")
-            con.commit()
+            sql = f"UPDATE history SET {label} = ? WHERE id = ?"
+            con.execute(sql, (value, id_value))
+
+    con.commit()
 
 
 def delete_all():
